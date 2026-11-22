@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vyjmenovaná slova</title>
+    <title>Škola hrou</title>
     <style>
         :root {
             --primary: #4A90E2;
@@ -12,6 +12,7 @@
             --danger: #E74C3C;
             --bg: #F0F4F8;
             --text: #2C3E50;
+            --zuzka-color: #FF7675;
         }
         
         * {
@@ -24,7 +25,6 @@
         body {
             margin: 0;
             padding: 0;
-            /* Čistý sans-serif font vhodný pro děti a dyslektiky - slova se neslévají */
             font-family: 'Verdana', 'Segoe UI', Tahoma, sans-serif;
             background-color: var(--bg);
             color: var(--text);
@@ -36,7 +36,7 @@
             overflow: hidden;
         }
 
-        #menu, #game {
+        .screen {
             background: white;
             padding: 30px;
             border-radius: 30px;
@@ -45,15 +45,40 @@
             width: 95%;
             max-width: 650px;
             position: relative;
-        }
-
-        #game {
             display: none;
         }
+
+        #screen-main-menu { display: block; }
 
         h1 {
             color: var(--primary);
             margin-top: 0;
+            font-size: 2.5rem;
+        }
+
+        .profile-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #357ABD;
+            transition: all 0.1s;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .profile-btn.zuzka {
+            background-color: var(--zuzka-color);
+            box-shadow: 0 6px 0 #D63031;
+        }
+
+        .profile-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0;
         }
 
         .category-grid {
@@ -87,17 +112,20 @@
             box-shadow: 0 0 0;
         }
 
-        #score-container {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: #F1C40F;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 20px;
         }
 
-        #stats-bar {
+        #score-container {
+            font-size: 2rem;
+            color: #F1C40F;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .stats-bar {
             font-size: 1.2rem;
             color: var(--text);
             text-shadow: none;
@@ -110,7 +138,7 @@
         .stat-bad { color: var(--danger); font-weight: bold; }
         .stat-percent { color: var(--primary); font-weight: bold; }
 
-        #back-btn {
+        .back-btn {
             font-size: 1rem;
             background: #95A5A6;
             color: white;
@@ -121,27 +149,23 @@
             cursor: pointer;
         }
         
-        #back-btn:active {
+        .back-btn:active {
             transform: translateY(4px);
             box-shadow: 0 0 0 #7F8C8D;
         }
 
+        /* KLARKA STYLES */
         #word-container {
             font-size: 2.2rem;
             font-weight: 600;
             letter-spacing: 1px;
             margin: 20px 0;
             min-height: 90px;
-            display: block; /* Změna z flex na block, aby se slova nerozdělovala přesně uprostřed kvůli spanům */
+            display: block;
             text-align: center;
             line-height: 1.4;
         }
-
-        /* Obaluje část slova s mezerou, aby se nerozlomilo slovo uvnitř */
-        .nowrap-word {
-            white-space: nowrap;
-        }
-
+        .nowrap-word { white-space: nowrap; }
         #blank {
             color: var(--primary);
             border-bottom: 4px solid var(--primary);
@@ -150,7 +174,6 @@
             margin: 0 2px;
             text-align: center;
         }
-
         #hint {
             font-size: 1.3rem;
             color: #7F8C8D;
@@ -158,14 +181,12 @@
             min-height: 35px;
             font-style: italic;
         }
-
-        .buttons {
+        .klarka-buttons {
             display: flex;
             justify-content: space-around;
             gap: 20px;
         }
-
-        button.guess-btn {
+        .klarka-buttons button {
             flex: 1;
             background-color: var(--primary);
             color: white;
@@ -176,30 +197,75 @@
             cursor: pointer;
             box-shadow: 0 8px 0 #357ABD;
             transition: all 0.1s;
-            font-family: inherit;
         }
-
-        button.guess-btn:active {
+        .klarka-buttons button:active {
             transform: translateY(8px);
             box-shadow: 0 0 0 #357ABD;
         }
 
+        /* ZUZKA STYLES */
+        #zuzka-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+            font-size: 4rem;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 20px;
+        }
+        .zuzka-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .zuzka-index {
+            font-size: 1rem;
+            color: #95A5A6;
+            margin-top: 5px;
+        }
+        #zuzka-question {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: var(--text);
+        }
+        .zuzka-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .zuzka-btn {
+            background-color: var(--zuzka-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 3rem;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #D63031;
+            transition: all 0.1s;
+        }
+        .zuzka-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #D63031;
+        }
+
+        /* FEEDBACK ANIMATIONS */
         .success-anim { animation: pop 0.5s ease-out; }
         .error-anim { animation: shake 0.5s; }
-
         @keyframes pop {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); color: var(--success); }
             100% { transform: scale(1); }
         }
-
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-10px); }
             40%, 80% { transform: translateX(10px); }
         }
         
-        #feedback-overlay {
+        .feedback-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(255,255,255,0.9);
@@ -214,304 +280,265 @@
 </head>
 <body>
 
-    <div id="menu">
+    <!-- MAIN MENU -->
+    <div id="screen-main-menu" class="screen">
+        <h1>Kdo se jde učit?</h1>
+        <button class="profile-btn" onclick="showScreen('screen-klarka-menu')">👱‍♀️ Klárka (Čeština)</button>
+        <button class="profile-btn zuzka" onclick="startZuzkaGame()">👧 Zuzka (Matematika)</button>
+    </div>
+
+    <!-- KLARKA MENU -->
+    <div id="screen-klarka-menu" class="screen">
         <h1>Co budeme trénovat?</h1>
-        <p>Vyber si písmenko, Klárko!</p>
+        <button class="back-btn" onclick="showScreen('screen-main-menu')" style="margin-bottom: 20px;">↩ Zpět na výběr</button>
         <div class="category-grid">
-            <button class="cat-btn" onclick="startGame('B')">B</button>
-            <button class="cat-btn" onclick="startGame('L')">L</button>
-            <button class="cat-btn" onclick="startGame('M')">M</button>
-            <button class="cat-btn" onclick="startGame('P')">P</button>
-            <button class="cat-btn" onclick="startGame('S')">S</button>
-            <button class="cat-btn" onclick="startGame('V')">V</button>
-            <button class="cat-btn" onclick="startGame('Z')">Z</button>
-            <button class="cat-btn all-btn" onclick="startGame('ALL')">VŠECHNA SLOVA</button>
+            <button class="cat-btn" onclick="startKlarkaGame('B')">B</button>
+            <button class="cat-btn" onclick="startKlarkaGame('L')">L</button>
+            <button class="cat-btn" onclick="startKlarkaGame('M')">M</button>
+            <button class="cat-btn" onclick="startKlarkaGame('P')">P</button>
+            <button class="cat-btn" onclick="startKlarkaGame('S')">S</button>
+            <button class="cat-btn" onclick="startKlarkaGame('V')">V</button>
+            <button class="cat-btn" onclick="startKlarkaGame('Z')">Z</button>
+            <button class="cat-btn all-btn" onclick="startKlarkaGame('ALL')">VŠECHNA SLOVA</button>
         </div>
     </div>
 
-    <div id="game">
-        <div id="score-container">
-            <button id="back-btn" onclick="showMenu()">↩ Zpět</button>
-            <div id="stats-bar">
-                <span class="stat-good" id="stat-correct">0</span> / 
-                <span class="stat-bad" id="stat-wrong">0</span>
-                <span class="stat-percent" id="stat-perc">0%</span>
+    <!-- KLARKA GAME -->
+    <div id="screen-klarka-game" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showScreen('screen-klarka-menu')">↩ Zpět</button>
+            <div class="stats-bar">
+                <span class="stat-good" id="k-stat-correct">0</span> / 
+                <span class="stat-bad" id="k-stat-wrong">0</span>
+                <span class="stat-percent" id="k-stat-perc">0%</span>
             </div>
-            <div>⭐ <span id="score">0</span></div>
+            <div id="score-container">⭐ <span id="k-score">0</span></div>
         </div>
         
-        <!-- Prefix a Suffix jsou rozděleny na slova před a slova s doplňkem, aby to nedělalo ošklivé zlomy -->
         <div id="word-container">
             <span id="prefix-words"></span>
             <span class="nowrap-word"><span id="prefix-part"></span><span id="blank">_</span><span id="suffix-part"></span></span>
             <span id="suffix-words"></span>
         </div>
-        
         <div id="hint"></div>
-        <div class="buttons">
-            <button class="guess-btn" id="btn-i" onclick="guess('i')">i / í</button>
-            <button class="guess-btn" id="btn-y" onclick="guess('y')">y / ý</button>
+        <div class="klarka-buttons">
+            <button onclick="guessKlarka('i')">i / í</button>
+            <button onclick="guessKlarka('y')">y / ý</button>
+        </div>
+        <div id="k-overlay" class="feedback-overlay"></div>
+    </div>
+
+    <!-- ZUZKA GAME -->
+    <div id="screen-zuzka-game" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showScreen('screen-main-menu')">↩ Zpět</button>
+            <div class="stats-bar">
+                <span class="stat-good" id="z-stat-correct">0</span> / 
+                <span class="stat-bad" id="z-stat-wrong">0</span>
+                <span class="stat-percent" id="z-stat-perc">0%</span>
+            </div>
+            <div id="score-container" style="color:var(--zuzka-color)">⭐ <span id="z-score">0</span></div>
         </div>
         
-        <div id="feedback-overlay"></div>
+        <div id="zuzka-row"></div>
+        <div id="zuzka-question">Kdo je hned za pejskem?</div>
+        
+        <div class="zuzka-buttons" id="zuzka-options">
+            <!-- Tlacitka generovana dynamicky -->
+        </div>
+        <div id="z-overlay" class="feedback-overlay"></div>
     </div>
 
     <script>
+        // === GLOBAL NAVIGATION ===
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            document.getElementById(screenId).style.display = 'block';
+        }
+
+        // Utils
+        function shuffle(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // ==========================================
+        // KLARKA LOGIC (VYJMENOVANA SLOVA)
+        // ==========================================
         const allWords = [
-            // B
             { cat: "B", fullPrefix: "luční kob", fullSuffix: "lka", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "B", fullPrefix: "neb", fullSuffix: "li doma", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "B", fullPrefix: "lidé se sb", fullSuffix: "hají", hint: "", correct: "i", displayCorrect: "í" },
             { cat: "B", fullPrefix: "nesmíš ho b", fullSuffix: "t", hint: "", correct: "i", displayCorrect: "í" },
             { cat: "B", fullPrefix: "chce b", fullSuffix: "t slavná", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "B", fullPrefix: "dny ub", fullSuffix: "haly", hint: "", correct: "i", displayCorrect: "í" },
             { cat: "B", fullPrefix: "kráva s b", fullSuffix: "čkem", hint: "", correct: "y", displayCorrect: "ý" },
             { cat: "B", fullPrefix: "krab", fullSuffix: "ce cukroví", hint: "", correct: "i", displayCorrect: "i" },
             { cat: "B", fullPrefix: "zb", fullSuffix: "tečná práce", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "B", fullPrefix: "chleb", fullSuffix: "ček", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "B", fullPrefix: "blízká ub", fullSuffix: "tovna", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "B", fullPrefix: "babiččin b", fullSuffix: "t", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "B", fullPrefix: "hub", fullSuffix: "čka", hint: "", correct: "i", displayCorrect: "i" },
             { cat: "B", fullPrefix: "dobré b", fullSuffix: "dlo", hint: "(živobytí)", correct: "y", displayCorrect: "y" },
             { cat: "B", fullPrefix: "dlouhé b", fullSuffix: "dlo", hint: "(tyč)", correct: "i", displayCorrect: "i" },
-            { cat: "B", fullPrefix: "stádo dob", fullSuffix: "tka", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "B", fullPrefix: "blízký hřb", fullSuffix: "tov", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "B", fullPrefix: "list z bab", fullSuffix: "ky", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "B", fullPrefix: "hrají vyb", fullSuffix: "jenou", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "B", fullPrefix: "mládě kob", fullSuffix: "ly", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "B", fullPrefix: "hb", fullSuffix: "tě počítá", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "B", fullPrefix: "zb", fullSuffix: "tky od oběda", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "B", fullPrefix: "dlouhý b", fullSuffix: "č", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "B", fullPrefix: "přib", fullSuffix: "l prkno", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "B", fullPrefix: "přib", fullSuffix: "l na váze", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "B", fullPrefix: "b", fullSuffix: "lá mouka", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "B", fullPrefix: "pytlík b", fullSuffix: "linek", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "B", fullPrefix: "bez náb", fullSuffix: "tku", hint: "", correct: "y", displayCorrect: "y" },
             
-            // L
-            { cat: "L", fullPrefix: "slyšel vzl", fullSuffix: "kat", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "L", fullPrefix: "líže l", fullSuffix: "zátko", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "L", fullPrefix: "holá l", fullSuffix: "sina", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "L", fullPrefix: "sladká l", fullSuffix: "monáda", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "L", fullPrefix: "pán byl l", fullSuffix: "sý", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "L", fullPrefix: "pol", fullSuffix: "kat jídlo", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "L", fullPrefix: "pl", fullSuffix: "tvat vodou", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "L", fullPrefix: "číst l", fullSuffix: "sty", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "L", fullPrefix: "rezavá l", fullSuffix: "ška", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "L", fullPrefix: "pl", fullSuffix: "nout po vodě", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "L", fullPrefix: "odl", fullSuffix: "t tekutinu", hint: "", correct: "i", displayCorrect: "í" },
             { cat: "L", fullPrefix: "zobající slep", fullSuffix: "ce", hint: "", correct: "i", displayCorrect: "i" },
             { cat: "L", fullPrefix: "zapadlý ml", fullSuffix: "n", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "L", fullPrefix: "l", fullSuffix: "dojed", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "L", fullPrefix: "nesl", fullSuffix: "šící", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "L", fullPrefix: "daný sl", fullSuffix: "b", hint: "", correct: "i", displayCorrect: "i" },
             { cat: "L", fullPrefix: "bolavé l", fullSuffix: "tko", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "L", fullPrefix: "cítil l", fullSuffix: "tost", hint: "", correct: "i", displayCorrect: "í" },
             { cat: "L", fullPrefix: "bl", "fullSuffix": "ská se", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "L", fullPrefix: "bl", "fullSuffix": "zká vesnice", hint: "", correct: "i", displayCorrect: "í" },
             
-            // M
             { cat: "M", fullPrefix: "zlobivá m", fullSuffix: "š", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "M", fullPrefix: "m", fullSuffix: "ska plná vody", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "M", fullPrefix: "m", fullSuffix: "t si ruce", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "M", fullPrefix: "m", fullSuffix: "t peníze", hint: "", correct: "i", displayCorrect: "í" },
             { cat: "M", fullPrefix: "pomalý hlem", fullSuffix: "žď", hint: "", correct: "y", displayCorrect: "ý" },
             { cat: "M", fullPrefix: "zam", fullSuffix: "kat dveře", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "M", fullPrefix: "m", fullSuffix: "lá babička", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "M", fullPrefix: "těžký prům", fullSuffix: "sl", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "M", fullPrefix: "m", fullSuffix: "slivec v lese", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "M", fullPrefix: "zlatá m", fullSuffix: "nce", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "M", fullPrefix: "m", fullSuffix: "tina v lese", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "M", fullPrefix: "voní m", fullSuffix: "dlem", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "M", fullPrefix: "jedovatá zm", fullSuffix: "je", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "M", fullPrefix: "udělal m", fullSuffix: "lku", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "M", fullPrefix: "dávná m", fullSuffix: "nulost", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "M", fullPrefix: "m", fullSuffix: "chat polévku", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "M", fullPrefix: "létající hm", fullSuffix: "z", hint: "", correct: "y", displayCorrect: "y" },
             
-            // P
             { cat: "P", fullPrefix: "p", fullSuffix: "cha předchází pád", hint: "", correct: "y", displayCorrect: "ý" },
             { cat: "P", fullPrefix: "včela p", fullSuffix: "chá", hint: "", correct: "i", displayCorrect: "í" },
             { cat: "P", fullPrefix: "prázdný p", fullSuffix: "tel", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "P", fullPrefix: "nap", fullSuffix: "t se vody", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "P", fullPrefix: "koňské kop", fullSuffix: "to", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "P", fullPrefix: "klop", fullSuffix: "tat na cestě", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "P", fullPrefix: "plazí se slep", fullSuffix: "š", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "P", fullPrefix: "žlutý p", fullSuffix: "l", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "P", fullPrefix: "p", fullSuffix: "lný žák", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "P", fullPrefix: "třp", fullSuffix: "tit se", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "P", fullPrefix: "p", fullSuffix: "kat za chyby", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "P", fullPrefix: "velké p", fullSuffix: "smeno", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "P", fullPrefix: "noční netop", fullSuffix: "r", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "P", fullPrefix: "ptačí p", fullSuffix: "rko", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "P", fullPrefix: "nap", fullSuffix: "nat luk", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "P", fullPrefix: "čep", fullSuffix: "řit se", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "P", fullPrefix: "p", fullSuffix: "tlák", hint: "", correct: "y", displayCorrect: "y" },
             
-            // S
             { cat: "S", fullPrefix: "otec a s", fullSuffix: "n", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "S", fullPrefix: "tuhý s", fullSuffix: "r", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "S", fullPrefix: "s", fullSuffix: "rové maso", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "S", fullPrefix: "sladký s", fullSuffix: "rup", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "S", fullPrefix: "s", fullSuffix: "tý oběd", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "S", fullPrefix: "s", fullSuffix: "to na mouku", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "S", fullPrefix: "s", fullSuffix: "čet jako had", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "S", fullPrefix: "s", fullSuffix: "la svalů", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "S", fullPrefix: "ptáček s", fullSuffix: "korka", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "S", fullPrefix: "us", fullSuffix: "nat", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "S", fullPrefix: "nas", fullSuffix: "pat zrní", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "S", fullPrefix: "plná s", fullSuffix: "pka", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "S", fullPrefix: "malý s", fullSuffix: "rotek", hint: "", correct: "i", displayCorrect: "i" },
             { cat: "S", fullPrefix: "hus", fullSuffix: "tá mlha", hint: "", correct: "i", displayCorrect: "i" },
             
-            // V
             { cat: "V", fullPrefix: "v", fullSuffix: "soký dům", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "V", fullPrefix: "pes začal v", fullSuffix: "t", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "V", fullPrefix: "v", fullSuffix: "t věneček", hint: "", correct: "i", displayCorrect: "í" },
             { cat: "V", fullPrefix: "v", fullSuffix: "r", hint: "(sova)", correct: "y", displayCorrect: "ý" },
             { cat: "V", fullPrefix: "v", fullSuffix: "r", hint: "(točící se voda)", correct: "i", displayCorrect: "í" },
             { cat: "V", fullPrefix: "v", fullSuffix: "skat radostí", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "V", fullPrefix: "v", fullSuffix: "skat vlasy", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "V", fullPrefix: "zv", fullSuffix: "kat si", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "V", fullPrefix: "žv", fullSuffix: "kačka", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "V", fullPrefix: "mokrá v", fullSuffix: "dra", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "V", fullPrefix: "v", fullSuffix: "dlička na jídlo", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "V", fullPrefix: "v", fullSuffix: "sel na větvi", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "V", fullPrefix: "hlasitý pov", fullSuffix: "k", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "V", fullPrefix: "v", fullSuffix: "dět obraz", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "V", fullPrefix: "lesní v", fullSuffix: "la", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "V", fullPrefix: "žhavá v", fullSuffix: "heň", hint: "", correct: "y", displayCorrect: "ý" },
-            { cat: "V", fullPrefix: "zav", fullSuffix: "rat dveře", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "V", fullPrefix: "hubené v", fullSuffix: "žle", hint: "", correct: "y", displayCorrect: "y" },
             
-            // Z
-            { cat: "Z", fullPrefix: "přijdu brz", fullSuffix: "", hint: "", correct: "y", displayCorrect: "y" },
             { cat: "Z", fullPrefix: "studená z", fullSuffix: "ma", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "Z", fullPrefix: "z", fullSuffix: "tra ráno", hint: "", correct: "i", displayCorrect: "í" },
             { cat: "Z", fullPrefix: "český jaz", fullSuffix: "k", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "Z", fullPrefix: "naz", fullSuffix: "vat se", hint: "", correct: "y", displayCorrect: "ý" },
             { cat: "Z", fullPrefix: "z", fullSuffix: "vat únavou", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "Z", fullPrefix: "letiště Ruz", fullSuffix: "ně", hint: "", correct: "y", displayCorrect: "y" },
-            { cat: "Z", fullPrefix: "z", fullSuffix: "skat výhodu", hint: "", correct: "i", displayCorrect: "í" },
-            { cat: "Z", fullPrefix: "chladný podz", fullSuffix: "m", hint: "", correct: "i", displayCorrect: "i" },
-            { cat: "Z", fullPrefix: "kamenná z", fullSuffix: "dka", hint: "", correct: "i", displayCorrect: "í" }
+            { cat: "Z", fullPrefix: "letiště Ruz", fullSuffix: "ně", hint: "", correct: "y", displayCorrect: "y" }
         ];
 
-        let wordQueue = [];
-        let currentCategory = 'ALL';
-        let currentWord = {};
-        
-        let score = 0;
-        let totalCorrect = 0;
-        let totalWrong = 0;
+        let kQueue = [], kCurrent = {}, kStats = { score: 0, ok: 0, err: 0 };
+        let kCategory = 'ALL';
 
-        function shuffle(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex !== 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-            }
-            return array;
+        function updateKlarkaStats() {
+            document.getElementById('k-score').innerText = kStats.score;
+            document.getElementById('k-stat-correct').innerText = kStats.ok;
+            document.getElementById('k-stat-wrong').innerText = kStats.err;
+            const total = kStats.ok + kStats.err;
+            document.getElementById('k-stat-perc').innerText = total === 0 ? "0%" : Math.round((kStats.ok / total) * 100) + '%';
         }
 
-        function showMenu() {
-            document.getElementById('game').style.display = 'none';
-            document.getElementById('menu').style.display = 'block';
+        function startKlarkaGame(category) {
+            kCategory = category;
+            kStats = { score: 0, ok: 0, err: 0 };
+            updateKlarkaStats();
+            fillKlarkaQueue();
+            showScreen('screen-klarka-game');
+            nextKlarkaWord();
         }
 
-        function updateStats() {
-            document.getElementById('score').innerText = score;
-            document.getElementById('stat-correct').innerText = totalCorrect;
-            document.getElementById('stat-wrong').innerText = totalWrong;
-            
-            const totalGuesses = totalCorrect + totalWrong;
-            const perc = totalGuesses === 0 ? 0 : Math.round((totalCorrect / totalGuesses) * 100);
-            document.getElementById('stat-perc').innerText = perc + '%';
+        let globalStats = [];
+
+        // Fetch stats from server on load
+        fetch('/api/get_stats')
+            .then(res => res.json())
+            .then(data => { globalStats = data; })
+            .catch(err => console.error("Stats not loaded", err));
+
+        function saveStat(profile, questionId, isCorrect) {
+            const stat = {
+                profile: profile,
+                questionId: questionId,
+                correct: isCorrect,
+                time: new Date().toISOString()
+            };
+            globalStats.push(stat); // pro lokalni learning engine
+            fetch('/api/save_stat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(stat)
+            }).catch(e => console.error(e));
         }
 
-        function startGame(category) {
-            currentCategory = category;
-            score = 0;
-            totalCorrect = 0;
-            totalWrong = 0;
-            updateStats();
-            refillQueue();
+        function fillKlarkaQueue() {
+            const list = kCategory === 'ALL' ? allWords : allWords.filter(w => w.cat === kCategory);
             
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('game').style.display = 'block';
-            
-            loadNextWord();
+            // Learning Engine: Klarka
+            let errorCounts = {};
+            globalStats.forEach(s => {
+                if (s.profile === 'Klarka' && !s.correct) {
+                    errorCounts[s.questionId] = (errorCounts[s.questionId] || 0) + 1;
+                }
+                if (s.profile === 'Klarka' && s.correct) {
+                    if (errorCounts[s.questionId]) {
+                        errorCounts[s.questionId] = Math.max(0, errorCounts[s.questionId] - 1);
+                    }
+                }
+            });
+
+            let weightedList = [];
+            list.forEach(w => {
+                let identifier = w.fullPrefix + '_' + w.fullSuffix;
+                let mistakes = errorCounts[identifier] || 0;
+                weightedList.push(w);
+                
+                let extraCopies = Math.min(mistakes, 3);
+                for (let i = 0; i < extraCopies; i++) {
+                    weightedList.push(w);
+                }
+            });
+
+            kQueue = shuffle(weightedList);
         }
 
-        function refillQueue() {
-            let listToPlay = [];
-            if (currentCategory === 'ALL') {
-                listToPlay = [...allWords];
-            } else {
-                listToPlay = allWords.filter(w => w.cat === currentCategory);
-            }
-            wordQueue = shuffle(listToPlay);
-        }
+        function nextKlarkaWord() {
+            if (kQueue.length === 0) fillKlarkaQueue();
+            kCurrent = kQueue.pop();
+            
+            const pArr = kCurrent.fullPrefix.split(" ");
+            const pPart = pArr.pop();
+            const pWords = pArr.join(" ");
+            
+            const sArr = kCurrent.fullSuffix.split(" ");
+            const sPart = sArr.shift();
+            const sWords = sArr.join(" ");
 
-        function loadNextWord() {
-            if (wordQueue.length === 0) refillQueue();
-            
-            currentWord = wordQueue.pop();
-            
-            // Logika, aby se slova s "mezerou" nelámala uvnitř doplňovaného slova
-            // Rozdělíme prefix a suffix podle poslední/první mezery
-            
-            const prefixArr = currentWord.fullPrefix.split(" ");
-            const prefixPart = prefixArr.pop(); // slovo s podtržítkem
-            const prefixWords = prefixArr.join(" "); // zbytek věty před ním
-            
-            const suffixArr = currentWord.fullSuffix.split(" ");
-            const suffixPart = suffixArr.shift(); // konec slova s podtržítkem
-            const suffixWords = suffixArr.join(" "); // zbytek věty za ním
-
-            document.getElementById('prefix-words').innerText = prefixWords ? prefixWords + " " : "";
-            document.getElementById('prefix-part').innerText = prefixPart;
-            
-            document.getElementById('suffix-part').innerText = suffixPart;
-            document.getElementById('suffix-words').innerText = suffixWords ? " " + suffixWords : "";
-            
-            document.getElementById('hint').innerText = currentWord.hint;
+            document.getElementById('prefix-words').innerText = pWords ? pWords + " " : "";
+            document.getElementById('prefix-part').innerText = pPart;
+            document.getElementById('suffix-part').innerText = sPart;
+            document.getElementById('suffix-words').innerText = sWords ? " " + sWords : "";
+            document.getElementById('hint').innerText = kCurrent.hint;
             
             const blank = document.getElementById('blank');
             blank.innerText = '_';
             blank.style.color = 'var(--primary)';
         }
 
-        function guess(letter) {
-            const overlay = document.getElementById('feedback-overlay');
-            const gameBox = document.getElementById('game');
+        function guessKlarka(letter) {
+            const overlay = document.getElementById('k-overlay');
+            const gameBox = document.getElementById('screen-klarka-game');
             const blank = document.getElementById('blank');
+            const identifier = kCurrent.fullPrefix + '_' + kCurrent.fullSuffix;
 
-            if (letter === currentWord.correct) {
-                score += 1;
-                totalCorrect += 1;
-                updateStats();
-                
-                blank.innerText = currentWord.displayCorrect;
+            if (letter === kCurrent.correct) {
+                kStats.score++; kStats.ok++;
+                saveStat('Klarka', identifier, true);
+                blank.innerText = kCurrent.displayCorrect;
                 blank.style.color = 'var(--success)';
                 gameBox.classList.add('success-anim');
-                
-                overlay.innerText = '🎉';
-                overlay.style.display = 'flex';
+                overlay.innerText = '🎉'; overlay.style.display = 'flex';
+                updateKlarkaStats();
                 
                 setTimeout(() => {
                     overlay.style.display = 'none';
                     gameBox.classList.remove('success-anim');
-                    loadNextWord();
+                    nextKlarkaWord();
                 }, 1000);
             } else {
-                totalWrong += 1;
-                updateStats();
-                
+                kStats.err++;
+                saveStat('Klarka', identifier, false);
                 gameBox.classList.add('error-anim');
-                overlay.innerText = '❌';
-                overlay.style.display = 'flex';
+                overlay.innerText = '❌'; overlay.style.display = 'flex';
+                updateKlarkaStats();
                 
                 setTimeout(() => {
                     overlay.style.display = 'none';
@@ -519,6 +546,137 @@
                 }, 800);
             }
         }
+
+        // ==========================================
+        // ZUZKA LOGIC (PROSTOROVA ORIENTACE / MATEMATIKA)
+        // ==========================================
+        const animals = ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵'];
+        let zStats = { score: 0, ok: 0, err: 0 };
+        let zCurrentAns = "";
+        
+        function updateZuzkaStats() {
+            document.getElementById('z-score').innerText = zStats.score;
+            document.getElementById('z-stat-correct').innerText = zStats.ok;
+            document.getElementById('z-stat-wrong').innerText = zStats.err;
+            const total = zStats.ok + zStats.err;
+            document.getElementById('z-stat-perc').innerText = total === 0 ? "0%" : Math.round((zStats.ok / total) * 100) + '%';
+        }
+
+        function startZuzkaGame() {
+            zStats = { score: 0, ok: 0, err: 0 };
+            updateZuzkaStats();
+            showScreen('screen-zuzka-game');
+            nextZuzkaRound();
+        }
+
+        function nextZuzkaRound() {
+            // Vyber 5 nahodnych zvirat
+            const selected = shuffle(animals).slice(0, 5);
+            
+            // Vykresli radu
+            const rowDiv = document.getElementById('zuzka-row');
+            rowDiv.innerHTML = "";
+            selected.forEach((anim, idx) => {
+                rowDiv.innerHTML += `<div class="zuzka-item"><span>${anim}</span><span class="zuzka-index">${idx+1}.</span></div>`;
+            });
+
+            // Typ otazky
+            // 0: Kdo je prvni/posledni
+            // 1: Kdo je hned ZA zviratkem X
+            // 2: Kdo je hned PRED zviratkem X
+            // 3: Kolikátý je zviratko X?
+            
+            const qType = Math.floor(Math.random() * 4);
+            let questionText = "";
+            let correctAnswer = "";
+            let isOrderQuestion = false;
+
+            if (qType === 0) {
+                const isFirst = Math.random() > 0.5;
+                if (isFirst) {
+                    questionText = "Kdo je PRVNÍ?";
+                    correctAnswer = selected[0];
+                } else {
+                    questionText = "Kdo je POSLEDNÍ (pátý)?";
+                    correctAnswer = selected[4];
+                }
+            } else if (qType === 1) {
+                // Kdo je hned ZA (vyber 0 az 3, protoze za 4. uz nikdo neni)
+                const targetIdx = Math.floor(Math.random() * 4);
+                questionText = `Kdo je hned ZA ${selected[targetIdx]}?`;
+                correctAnswer = selected[targetIdx + 1];
+            } else if (qType === 2) {
+                // Kdo je hned PRED (vyber 1 az 4)
+                const targetIdx = Math.floor(Math.random() * 4) + 1;
+                questionText = `Kdo je hned PŘED ${selected[targetIdx]}?`;
+                correctAnswer = selected[targetIdx - 1];
+            } else {
+                // Kolikátý je?
+                const targetIdx = Math.floor(Math.random() * 5);
+                questionText = `Kolikátý v řadě je ${selected[targetIdx]}?`;
+                const ordinals = ["První", "Druhý", "Třetí", "Čtvrtý", "Pátý"];
+                correctAnswer = ordinals[targetIdx];
+                isOrderQuestion = true;
+            }
+
+            zCurrentAns = correctAnswer;
+            document.getElementById('zuzka-question').innerText = questionText;
+
+            // Vygenerovani moznosti (tlacitek)
+            let options = [];
+            options.push(correctAnswer);
+
+            if (isOrderQuestion) {
+                // Odpovedi jsou slovni
+                const allOrdinals = ["První", "Druhý", "Třetí", "Čtvrtý", "Pátý"];
+                const wrongs = shuffle(allOrdinals.filter(o => o !== correctAnswer)).slice(0, 3);
+                options = options.concat(wrongs);
+            } else {
+                // Odpovedi jsou zvirata
+                const wrongs = shuffle(animals.filter(a => a !== correctAnswer)).slice(0, 3);
+                options = options.concat(wrongs);
+            }
+
+            options = shuffle(options);
+            
+            const optsDiv = document.getElementById('zuzka-options');
+            optsDiv.innerHTML = "";
+            options.forEach(opt => {
+                optsDiv.innerHTML += `<button class="zuzka-btn" onclick="guessZuzka('${opt}')">${opt}</button>`;
+            });
+        }
+
+        function guessZuzka(ans) {
+            const overlay = document.getElementById('z-overlay');
+            const gameBox = document.getElementById('screen-zuzka-game');
+            const questionId = document.getElementById('zuzka-question').innerText;
+
+            if (ans === zCurrentAns) {
+                zStats.score++; zStats.ok++;
+                saveStat('Zuzka', questionId, true);
+                updateZuzkaStats();
+                gameBox.classList.add('success-anim');
+                overlay.innerText = '🎉'; overlay.style.display = 'flex';
+                
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    gameBox.classList.remove('success-anim');
+                    nextZuzkaRound();
+                }, 1200);
+            } else {
+                zStats.err++;
+                saveStat('Zuzka', questionId, false);
+                updateZuzkaStats();
+                gameBox.classList.add('error-anim');
+                overlay.innerText = '❌'; overlay.style.display = 'flex';
+                
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    gameBox.classList.remove('error-anim');
+                }, 800);
+            }
+        }
+
     </script>
 </body>
 </html>

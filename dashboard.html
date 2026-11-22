@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Škola hrou - Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #F0F4F8;
+            color: #2C3E50;
+            padding: 20px;
+        }
+        h1, h2 { color: #4A90E2; }
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            flex: 1;
+            min-width: 300px;
+        }
+        .zuzka-panel h2 { color: #FF7675; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        th { background: #f9f9f9; }
+        .err-count { color: #E74C3C; font-weight: bold; }
+        .ok-count { color: #2ECC71; }
+    </style>
+</head>
+<body>
+
+    <h1>Škola hrou - Dashboard Statistik</h1>
+    <div class="dashboard">
+        
+        <div class="panel">
+            <h2>👱‍♀️ Klárka (Nejčastější chyby)</h2>
+            <table>
+                <thead><tr><th>Slovo / Spojení</th><th>Chyby ❌</th><th>Správně ✅</th></tr></thead>
+                <tbody id="klarka-tbody"></tbody>
+            </table>
+        </div>
+
+        <div class="panel zuzka-panel">
+            <h2>👧 Zuzka (Nejčastější chyby)</h2>
+            <table>
+                <thead><tr><th>Typ otázky</th><th>Chyby ❌</th><th>Správně ✅</th></tr></thead>
+                <tbody id="zuzka-tbody"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        fetch('/api/get_stats')
+            .then(res => res.json())
+            .then(data => {
+                const kStats = {};
+                const zStats = {};
+
+                data.forEach(s => {
+                    if (s.profile === 'Klarka') {
+                        if (!kStats[s.questionId]) kStats[s.questionId] = { err: 0, ok: 0 };
+                        if (s.correct) kStats[s.questionId].ok++; else kStats[s.questionId].err++;
+                    } else if (s.profile === 'Zuzka') {
+                        if (!zStats[s.questionId]) zStats[s.questionId] = { err: 0, ok: 0 };
+                        if (s.correct) zStats[s.questionId].ok++; else zStats[s.questionId].err++;
+                    }
+                });
+
+                function renderTable(statsObj, tbodyId) {
+                    const sorted = Object.entries(statsObj).sort((a,b) => b[1].err - a[1].err);
+                    const tbody = document.getElementById(tbodyId);
+                    
+                    if (sorted.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3">Zatím žádná data</td></tr>';
+                        return;
+                    }
+
+                    sorted.forEach(([qid, counts]) => {
+                        if (counts.err > 0 || counts.ok > 0) {
+                            tbody.innerHTML += `<tr>
+                                <td>${qid.replace('_', '')}</td>
+                                <td class="err-count">${counts.err}</td>
+                                <td class="ok-count">${counts.ok}</td>
+                            </tr>`;
+                        }
+                    });
+                }
+
+                renderTable(kStats, 'klarka-tbody');
+                renderTable(zStats, 'zuzka-tbody');
+            })
+            .catch(e => console.error("Could not fetch stats", e));
+    </script>
+</body>
+</html>
