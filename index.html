@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vyjmenovaná slova</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --secondary: #9B59B6;
+            --success: #2ECC71;
+            --danger: #E74C3C;
+            --bg: #F0F4F8;
+            --text: #2C3E50;
+        }
+        
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            /* Čistý sans-serif font vhodný pro děti a dyslektiky - slova se neslévají */
+            font-family: 'Verdana', 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #menu, #game {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 95%;
+            max-width: 650px;
+            position: relative;
+        }
+
+        #game {
+            display: none;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .cat-btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.5rem;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #8E44AD;
+            transition: all 0.1s;
+            font-weight: bold;
+        }
+        
+        .cat-btn.all-btn {
+            grid-column: span 3;
+            background-color: var(--primary);
+            box-shadow: 0 5px 0 #357ABD;
+        }
+
+        .cat-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0;
+        }
+
+        #score-container {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #F1C40F;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #stats-bar {
+            font-size: 1.2rem;
+            color: var(--text);
+            text-shadow: none;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .stat-good { color: var(--success); font-weight: bold; }
+        .stat-bad { color: var(--danger); font-weight: bold; }
+        .stat-percent { color: var(--primary); font-weight: bold; }
+
+        #back-btn {
+            font-size: 1rem;
+            background: #95A5A6;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            box-shadow: 0 4px 0 #7F8C8D;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        #back-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #7F8C8D;
+        }
+
+        #word-container {
+            font-size: 2.2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin: 20px 0;
+            min-height: 90px;
+            display: block; /* Změna z flex na block, aby se slova nerozdělovala přesně uprostřed kvůli spanům */
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* Obaluje část slova s mezerou, aby se nerozlomilo slovo uvnitř */
+        .nowrap-word {
+            white-space: nowrap;
+        }
+
+        #blank {
+            color: var(--primary);
+            border-bottom: 4px solid var(--primary);
+            min-width: 40px;
+            display: inline-block;
+            margin: 0 2px;
+            text-align: center;
+        }
+
+        #hint {
+            font-size: 1.3rem;
+            color: #7F8C8D;
+            margin-bottom: 30px;
+            min-height: 35px;
+            font-style: italic;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+
+        button.guess-btn {
+            flex: 1;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 3rem;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #357ABD;
+            transition: all 0.1s;
+            font-family: inherit;
+        }
+
+        button.guess-btn:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 #357ABD;
+        }
+
+        .success-anim { animation: pop 0.5s ease-out; }
+        .error-anim { animation: shake 0.5s; }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); color: var(--success); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+        
+        #feedback-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.9);
+            border-radius: 30px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu">
+        <h1>Co budeme trénovat?</h1>
+        <p>Vyber si písmenko, Klárko!</p>
+        <div class="category-grid">
+            <button class="cat-btn" onclick="startGame('B')">B</button>
+            <button class="cat-btn" onclick="startGame('L')">L</button>
+            <button class="cat-btn" onclick="startGame('M')">M</button>
+            <button class="cat-btn" onclick="startGame('P')">P</button>
+            <button class="cat-btn" onclick="startGame('S')">S</button>
+            <button class="cat-btn" onclick="startGame('V')">V</button>
+            <button class="cat-btn" onclick="startGame('Z')">Z</button>
+            <button class="cat-btn all-btn" onclick="startGame('ALL')">VŠECHNA SLOVA</button>
+        </div>
+    </div>
+
+    <div id="game">
+        <div id="score-container">
+            <button id="back-btn" onclick="showMenu()">↩ Zpět</button>
+            <div id="stats-bar">
+                <span class="stat-good" id="stat-correct">0</span> / 
+                <span class="stat-bad" id="stat-wrong">0</span>
+                <span class="stat-percent" id="stat-perc">0%</span>
+            </div>
+            <div>⭐ <span id="score">0</span></div>
+        </div>
+        
+        <!-- Prefix a Suffix jsou rozděleny na slova před a slova s doplňkem, aby to nedělalo ošklivé zlomy -->
+        <div id="word-container">
+            <span id="prefix-words"></span>
+            <span class="nowrap-word"><span id="prefix-part"></span><span id="blank">_</span><span id="suffix-part"></span></span>
+            <span id="suffix-words"></span>
+        </div>
+        
+        <div id="hint"></div>
+        <div class="buttons">
+            <button class="guess-btn" id="btn-i" onclick="guess('i')">i / í</button>
+            <button class="guess-btn" id="btn-y" onclick="guess('y')">y / ý</button>
+        </div>
+        
+        <div id="feedback-overlay"></div>
+    </div>
+
+    <script>
+        const allWords = [
+            // B
+            { cat: "B", fullPrefix: "luční kob", fullSuffix: "lka", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "neb", fullSuffix: "li doma", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "lidé se sb", fullSuffix: "hají", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "B", fullPrefix: "nesmíš ho b", fullSuffix: "t", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "B", fullPrefix: "chce b", fullSuffix: "t slavná", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "B", fullPrefix: "dny ub", fullSuffix: "haly", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "B", fullPrefix: "kráva s b", fullSuffix: "čkem", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "B", fullPrefix: "krab", fullSuffix: "ce cukroví", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "B", fullPrefix: "zb", fullSuffix: "tečná práce", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "chleb", fullSuffix: "ček", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "B", fullPrefix: "blízká ub", fullSuffix: "tovna", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "babiččin b", fullSuffix: "t", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "hub", fullSuffix: "čka", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "B", fullPrefix: "dobré b", fullSuffix: "dlo", hint: "(živobytí)", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "dlouhé b", fullSuffix: "dlo", hint: "(tyč)", correct: "i", displayCorrect: "i" },
+            { cat: "B", fullPrefix: "stádo dob", fullSuffix: "tka", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "blízký hřb", fullSuffix: "tov", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "B", fullPrefix: "list z bab", fullSuffix: "ky", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "hrají vyb", fullSuffix: "jenou", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "B", fullPrefix: "mládě kob", fullSuffix: "ly", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "hb", fullSuffix: "tě počítá", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "B", fullPrefix: "zb", fullSuffix: "tky od oběda", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "dlouhý b", fullSuffix: "č", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "B", fullPrefix: "přib", fullSuffix: "l prkno", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "B", fullPrefix: "přib", fullSuffix: "l na váze", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "b", fullSuffix: "lá mouka", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "B", fullPrefix: "pytlík b", fullSuffix: "linek", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "B", fullPrefix: "bez náb", fullSuffix: "tku", hint: "", correct: "y", displayCorrect: "y" },
+            
+            // L
+            { cat: "L", fullPrefix: "slyšel vzl", fullSuffix: "kat", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "L", fullPrefix: "líže l", fullSuffix: "zátko", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "L", fullPrefix: "holá l", fullSuffix: "sina", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "L", fullPrefix: "sladká l", fullSuffix: "monáda", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "L", fullPrefix: "pán byl l", fullSuffix: "sý", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "L", fullPrefix: "pol", fullSuffix: "kat jídlo", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "L", fullPrefix: "pl", fullSuffix: "tvat vodou", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "L", fullPrefix: "číst l", fullSuffix: "sty", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "L", fullPrefix: "rezavá l", fullSuffix: "ška", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "L", fullPrefix: "pl", fullSuffix: "nout po vodě", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "L", fullPrefix: "odl", fullSuffix: "t tekutinu", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "L", fullPrefix: "zobající slep", fullSuffix: "ce", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "L", fullPrefix: "zapadlý ml", fullSuffix: "n", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "L", fullPrefix: "l", fullSuffix: "dojed", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "L", fullPrefix: "nesl", fullSuffix: "šící", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "L", fullPrefix: "daný sl", fullSuffix: "b", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "L", fullPrefix: "bolavé l", fullSuffix: "tko", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "L", fullPrefix: "cítil l", fullSuffix: "tost", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "L", fullPrefix: "bl", "fullSuffix": "ská se", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "L", fullPrefix: "bl", "fullSuffix": "zká vesnice", hint: "", correct: "i", displayCorrect: "í" },
+            
+            // M
+            { cat: "M", fullPrefix: "zlobivá m", fullSuffix: "š", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "M", fullPrefix: "m", fullSuffix: "ska plná vody", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "M", fullPrefix: "m", fullSuffix: "t si ruce", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "M", fullPrefix: "m", fullSuffix: "t peníze", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "M", fullPrefix: "pomalý hlem", fullSuffix: "žď", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "M", fullPrefix: "zam", fullSuffix: "kat dveře", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "M", fullPrefix: "m", fullSuffix: "lá babička", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "M", fullPrefix: "těžký prům", fullSuffix: "sl", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "M", fullPrefix: "m", fullSuffix: "slivec v lese", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "M", fullPrefix: "zlatá m", fullSuffix: "nce", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "M", fullPrefix: "m", fullSuffix: "tina v lese", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "M", fullPrefix: "voní m", fullSuffix: "dlem", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "M", fullPrefix: "jedovatá zm", fullSuffix: "je", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "M", fullPrefix: "udělal m", fullSuffix: "lku", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "M", fullPrefix: "dávná m", fullSuffix: "nulost", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "M", fullPrefix: "m", fullSuffix: "chat polévku", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "M", fullPrefix: "létající hm", fullSuffix: "z", hint: "", correct: "y", displayCorrect: "y" },
+            
+            // P
+            { cat: "P", fullPrefix: "p", fullSuffix: "cha předchází pád", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "P", fullPrefix: "včela p", fullSuffix: "chá", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "P", fullPrefix: "prázdný p", fullSuffix: "tel", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "P", fullPrefix: "nap", fullSuffix: "t se vody", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "P", fullPrefix: "koňské kop", fullSuffix: "to", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "P", fullPrefix: "klop", fullSuffix: "tat na cestě", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "P", fullPrefix: "plazí se slep", fullSuffix: "š", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "P", fullPrefix: "žlutý p", fullSuffix: "l", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "P", fullPrefix: "p", fullSuffix: "lný žák", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "P", fullPrefix: "třp", fullSuffix: "tit se", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "P", fullPrefix: "p", fullSuffix: "kat za chyby", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "P", fullPrefix: "velké p", fullSuffix: "smeno", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "P", fullPrefix: "noční netop", fullSuffix: "r", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "P", fullPrefix: "ptačí p", fullSuffix: "rko", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "P", fullPrefix: "nap", fullSuffix: "nat luk", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "P", fullPrefix: "čep", fullSuffix: "řit se", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "P", fullPrefix: "p", fullSuffix: "tlák", hint: "", correct: "y", displayCorrect: "y" },
+            
+            // S
+            { cat: "S", fullPrefix: "otec a s", fullSuffix: "n", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "S", fullPrefix: "tuhý s", fullSuffix: "r", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "S", fullPrefix: "s", fullSuffix: "rové maso", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "S", fullPrefix: "sladký s", fullSuffix: "rup", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "S", fullPrefix: "s", fullSuffix: "tý oběd", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "S", fullPrefix: "s", fullSuffix: "to na mouku", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "S", fullPrefix: "s", fullSuffix: "čet jako had", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "S", fullPrefix: "s", fullSuffix: "la svalů", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "S", fullPrefix: "ptáček s", fullSuffix: "korka", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "S", fullPrefix: "us", fullSuffix: "nat", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "S", fullPrefix: "nas", fullSuffix: "pat zrní", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "S", fullPrefix: "plná s", fullSuffix: "pka", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "S", fullPrefix: "malý s", fullSuffix: "rotek", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "S", fullPrefix: "hus", fullSuffix: "tá mlha", hint: "", correct: "i", displayCorrect: "i" },
+            
+            // V
+            { cat: "V", fullPrefix: "v", fullSuffix: "soký dům", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "V", fullPrefix: "pes začal v", fullSuffix: "t", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "V", fullPrefix: "v", fullSuffix: "t věneček", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "V", fullPrefix: "v", fullSuffix: "r", hint: "(sova)", correct: "y", displayCorrect: "ý" },
+            { cat: "V", fullPrefix: "v", fullSuffix: "r", hint: "(točící se voda)", correct: "i", displayCorrect: "í" },
+            { cat: "V", fullPrefix: "v", fullSuffix: "skat radostí", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "V", fullPrefix: "v", fullSuffix: "skat vlasy", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "V", fullPrefix: "zv", fullSuffix: "kat si", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "V", fullPrefix: "žv", fullSuffix: "kačka", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "V", fullPrefix: "mokrá v", fullSuffix: "dra", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "V", fullPrefix: "v", fullSuffix: "dlička na jídlo", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "V", fullPrefix: "v", fullSuffix: "sel na větvi", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "V", fullPrefix: "hlasitý pov", fullSuffix: "k", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "V", fullPrefix: "v", fullSuffix: "dět obraz", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "V", fullPrefix: "lesní v", fullSuffix: "la", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "V", fullPrefix: "žhavá v", fullSuffix: "heň", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "V", fullPrefix: "zav", fullSuffix: "rat dveře", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "V", fullPrefix: "hubené v", fullSuffix: "žle", hint: "", correct: "y", displayCorrect: "y" },
+            
+            // Z
+            { cat: "Z", fullPrefix: "přijdu brz", fullSuffix: "", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "Z", fullPrefix: "studená z", fullSuffix: "ma", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "Z", fullPrefix: "z", fullSuffix: "tra ráno", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "Z", fullPrefix: "český jaz", fullSuffix: "k", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "Z", fullPrefix: "naz", fullSuffix: "vat se", hint: "", correct: "y", displayCorrect: "ý" },
+            { cat: "Z", fullPrefix: "z", fullSuffix: "vat únavou", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "Z", fullPrefix: "letiště Ruz", fullSuffix: "ně", hint: "", correct: "y", displayCorrect: "y" },
+            { cat: "Z", fullPrefix: "z", fullSuffix: "skat výhodu", hint: "", correct: "i", displayCorrect: "í" },
+            { cat: "Z", fullPrefix: "chladný podz", fullSuffix: "m", hint: "", correct: "i", displayCorrect: "i" },
+            { cat: "Z", fullPrefix: "kamenná z", fullSuffix: "dka", hint: "", correct: "i", displayCorrect: "í" }
+        ];
+
+        let wordQueue = [];
+        let currentCategory = 'ALL';
+        let currentWord = {};
+        
+        let score = 0;
+        let totalCorrect = 0;
+        let totalWrong = 0;
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function showMenu() {
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('menu').style.display = 'block';
+        }
+
+        function updateStats() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('stat-correct').innerText = totalCorrect;
+            document.getElementById('stat-wrong').innerText = totalWrong;
+            
+            const totalGuesses = totalCorrect + totalWrong;
+            const perc = totalGuesses === 0 ? 0 : Math.round((totalCorrect / totalGuesses) * 100);
+            document.getElementById('stat-perc').innerText = perc + '%';
+        }
+
+        function startGame(category) {
+            currentCategory = category;
+            score = 0;
+            totalCorrect = 0;
+            totalWrong = 0;
+            updateStats();
+            refillQueue();
+            
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            
+            loadNextWord();
+        }
+
+        function refillQueue() {
+            let listToPlay = [];
+            if (currentCategory === 'ALL') {
+                listToPlay = [...allWords];
+            } else {
+                listToPlay = allWords.filter(w => w.cat === currentCategory);
+            }
+            wordQueue = shuffle(listToPlay);
+        }
+
+        function loadNextWord() {
+            if (wordQueue.length === 0) refillQueue();
+            
+            currentWord = wordQueue.pop();
+            
+            // Logika, aby se slova s "mezerou" nelámala uvnitř doplňovaného slova
+            // Rozdělíme prefix a suffix podle poslední/první mezery
+            
+            const prefixArr = currentWord.fullPrefix.split(" ");
+            const prefixPart = prefixArr.pop(); // slovo s podtržítkem
+            const prefixWords = prefixArr.join(" "); // zbytek věty před ním
+            
+            const suffixArr = currentWord.fullSuffix.split(" ");
+            const suffixPart = suffixArr.shift(); // konec slova s podtržítkem
+            const suffixWords = suffixArr.join(" "); // zbytek věty za ním
+
+            document.getElementById('prefix-words').innerText = prefixWords ? prefixWords + " " : "";
+            document.getElementById('prefix-part').innerText = prefixPart;
+            
+            document.getElementById('suffix-part').innerText = suffixPart;
+            document.getElementById('suffix-words').innerText = suffixWords ? " " + suffixWords : "";
+            
+            document.getElementById('hint').innerText = currentWord.hint;
+            
+            const blank = document.getElementById('blank');
+            blank.innerText = '_';
+            blank.style.color = 'var(--primary)';
+        }
+
+        function guess(letter) {
+            const overlay = document.getElementById('feedback-overlay');
+            const gameBox = document.getElementById('game');
+            const blank = document.getElementById('blank');
+
+            if (letter === currentWord.correct) {
+                score += 1;
+                totalCorrect += 1;
+                updateStats();
+                
+                blank.innerText = currentWord.displayCorrect;
+                blank.style.color = 'var(--success)';
+                gameBox.classList.add('success-anim');
+                
+                overlay.innerText = '🎉';
+                overlay.style.display = 'flex';
+                
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    gameBox.classList.remove('success-anim');
+                    loadNextWord();
+                }, 1000);
+            } else {
+                totalWrong += 1;
+                updateStats();
+                
+                gameBox.classList.add('error-anim');
+                overlay.innerText = '❌';
+                overlay.style.display = 'flex';
+                
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    gameBox.classList.remove('error-anim');
+                }, 800);
+            }
+        }
+    </script>
+</body>
+</html>
